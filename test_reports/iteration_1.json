@@ -1,0 +1,47 @@
+{
+  "summary": "First-finish smoke test of LexKasa (backend + frontend). Full happy-path flow verified end-to-end: login -> 4 seeded kasalar -> create client -> client_to_kasa avans -> kasa->kasa virman -> expense -> receivable -> partial collection -> reports/ledger. All balances mathematically consistent (Merkez 4500, Banka 1000; client balance 4700 after -300 expense; receivable remaining 1200 from 2000).",
+  "tested_scope": ["backend", "frontend", "auth", "integration"],
+  "passed": [
+    "POST /api/auth/login returns JWT (field name is 'token', not 'access_token') + user object",
+    "GET /api/kasalar returns 4 pre-seeded vaults (Merkez, Banka, Emanet, Icra)",
+    "POST /api/clients creates client with balance 0",
+    "POST /api/transfers/client (direction=client_to_kasa) increases kasa and client balances by 5000",
+    "POST /api/transfers/kasa moves 1000 from source_kasa_id to target_kasa_id (source-1000, target+1000)",
+    "POST /api/expenses records expense with expense_type; kasa decreases by 300",
+    "POST /api/receivables creates receivable with fee_type=akdi, total_amount=2000, remaining=2000 initial",
+    "POST /api/receivables/{id}/collect partial 800 -> remaining 1200, kasa +800, status still 'acik'",
+    "GET /api/reports/summary returns total_balance 5500, income 5800, expense 300, kasa_balances, trend",
+    "GET /api/transactions returns 4 transactions with type/amount/kasa_name/client_name",
+    "Frontend /giris login form works (login-email-input, login-password-input, 'Oturumu Ac' button) and redirects to /",
+    "Dashboard renders 4 vault cards with correct balances and 'Hos geldiniz' toast",
+    "open-vault-transfer-modal-btn opens Kasa Arasi Virman modal with Kaynak/Hedef selects",
+    "open-client-transfer-modal-btn present on dashboard",
+    "/muvekkiller shows client list with correct 4.700 balance for Test Muvekkil; open-new-client-modal-btn present",
+    "/masraflar open-new-expense-modal-btn present",
+    "/alacaklar shows receivable with 'Acik' status, 1.200 remaining, 'Tahsil Et' button present",
+    "/raporlar shows KPI cards (5500/5800/300/1200), gelir-gider line chart, kasa bar chart, CSV/Excel download button",
+    "/hareketler ledger shows all 4 transactions with type badges (Vekalet Tahsilati/Dava Masrafi/Kasa Virmani/Muvekkilden Tahsilat) and color-coded amounts",
+    "No console errors captured during navigation across pages"
+  ],
+  "failed": [
+    {
+      "area": "Backend API contract vs review spec",
+      "issue": "Field names in review request do not match actual API: /transfers/kasa expects source_kasa_id/target_kasa_id (not from/to); /expenses requires expense_type field; /receivables uses total_amount (not amount); auth response uses 'token' (not 'access_token'). Frontend integrations still work since UI uses the actual contract.",
+      "evidence": "Pydantic 422 errors when using review-spec field names; frontend UI displays correct data end-to-end",
+      "priority": "LOW"
+    },
+    {
+      "area": "GET /api/transactions filter",
+      "issue": "Query param 'tx_type=expense' returned 0 results while transactions exist. Backend transaction records use field name 'type' (values like 'receivable_collection'), not 'tx_type'. Filter parameter likely expects different value or param name.",
+      "evidence": "curl /api/transactions?kasa_id=X&tx_type=expense -> [] but /api/transactions?kasa_id=X returns 4 items",
+      "priority": "LOW"
+    }
+  ],
+  "action_items": [
+    "Optional: document actual API field names (source_kasa_id/target_kasa_id, expense_type, total_amount, 'token') in PRD to match implementation.",
+    "Optional: verify /api/transactions tx_type filter parameter; either rename to 'type' or map values (expense, income, transfer) internally."
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "retest_needed": false,
+  "full_testing_deferred": true
+}

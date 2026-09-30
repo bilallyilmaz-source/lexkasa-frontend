@@ -202,6 +202,25 @@ async def list_kasalar(current=Depends(get_current_user)):
     items.sort(key=lambda x: x["created_at"])
     return items
 
+class KasaUpdateIn(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+@api_router.patch("/kasalar/{kasa_id}")
+async def update_kasa(kasa_id: str, payload: KasaUpdateIn, current=Depends(get_current_user)):
+    kasa = await get_kasa(kasa_id)
+    if not kasa:
+        raise HTTPException(status_code=404, detail="Kasa bulunamadı")
+    update = {}
+    if payload.name is not None and payload.name.strip():
+        update["name"] = payload.name.strip()
+    if payload.description is not None:
+        update["description"] = payload.description.strip()
+    if not update:
+        raise HTTPException(status_code=400, detail="Güncellenecek alan yok")
+    await db.kasalar.update_one({"id": kasa_id}, {"$set": update})
+    return await get_kasa(kasa_id)
+
 # ---------- Transfers ----------
 @api_router.post("/transfers/kasa")
 async def kasa_transfer(payload: KasaTransferIn, current=Depends(get_current_user)):

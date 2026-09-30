@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import api, { formatTL, formatDateTime } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Wallet, TrendingUp, TrendingDown, Scale, Plus } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Wallet, TrendingUp, TrendingDown, Scale, Plus, Pencil } from "lucide-react";
 import { Link } from "react-router-dom";
 import KasaTransferModal from "@/components/modals/KasaTransferModal";
 import MuvekkilTransferModal from "@/components/modals/MuvekkilTransferModal";
+import KasaEditModal from "@/components/modals/KasaEditModal";
 
 const colorMap = {
   emerald: { text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", ring: "text-emerald-600" },
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [txs, setTxs] = useState([]);
   const [openKasa, setOpenKasa] = useState(false);
   const [openMv, setOpenMv] = useState(false);
+  const [editKasa, setEditKasa] = useState(null);
   const [clients, setClients] = useState([]);
 
   const refresh = async () => {
@@ -91,7 +93,14 @@ export default function Dashboard() {
                   <div className={`px-2.5 py-1 rounded-md text-[10px] uppercase tracking-widest font-semibold ${c.bg} ${c.text} ${c.border} border`}>
                     {k.code}
                   </div>
-                  <Wallet className={`w-4 h-4 ${c.ring}`} />
+                  <button
+                    onClick={(e) => { e.preventDefault(); setEditKasa(k); }}
+                    data-testid={`edit-kasa-${k.code}`}
+                    className="p-1.5 rounded-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                    title="Kasayı düzenle"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
                 </div>
                 <div className="font-serif-legal text-lg text-slate-900 leading-tight mb-1">{k.name}</div>
                 <div className="text-xs text-slate-500 mb-4 line-clamp-2">{k.description}</div>
@@ -122,6 +131,7 @@ export default function Dashboard() {
 
       <KasaTransferModal open={openKasa} onOpenChange={setOpenKasa} kasalar={kasalar} onDone={refresh} />
       <MuvekkilTransferModal open={openMv} onOpenChange={setOpenMv} kasalar={kasalar} clients={clients} onDone={refresh} />
+      <KasaEditModal open={!!editKasa} onOpenChange={(o) => !o && setEditKasa(null)} kasa={editKasa} onDone={refresh} />
     </div>
   );
 }
