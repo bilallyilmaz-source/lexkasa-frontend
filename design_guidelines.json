@@ -1,0 +1,222 @@
+{
+  "project_name": "LexKasa - Hukuk Bürosu Finans ve Kasa Yönetim Sistemi",
+  "app_type": "saas_app",
+  "design_archetype": "ARCHETYPE 5: LUXURY & ARCHETYPE 4: SWISS RIGOR (Law Firm Trust, Precision, Sovereign Vaults)",
+  "language": "tr",
+  "theme_strategy": {
+    "default_theme": "light",
+    "has_theme_toggle": true,
+    "aesthetic": "Prestigious Legal Swiss Office meets Modern Wealth Vault. Warm ivory alabaster surfaces, deep midnight slate typography, rich imperial bronze/gold accents (#C5A059), bespoke banking vault borders, and crisp tabular ledger alignment."
+  },
+  "responsive": {
+    "breakpoint": "mobile-first",
+    "mobile_rules": "Start with w-full, single-column flex-col layout on mobile (360px - 768px), then grid-cols-2 at md (768px) and grid-cols-4 / grid-cols-12 at lg (1024px+).",
+    "layout": {
+      "mobile": "Single column flow, sticky top legal bar with responsive drawer toggle, 4 Kasa cards rendered as a horizontal swipeable ribbon or clean stacked tactile cards, drawer/modal sheet for quick money transfers.",
+      "desktop": "Sidebar fixed or collapsible (w-64), top institutional action ribbon, 4-column Kasa Vault grid, 12-column Bento ledger & case distribution with instant transfer drawer and analytical ledger."
+    },
+    "typography": "Mobile base text-sm to text-base (never below 14px for inputs to prevent iOS auto-zoom), headings scaled clamp(1.5rem, 4vw, 2.25rem). Strict tabular numbers (font-mono or tabular-nums) for all Turkish Lira currency balances.",
+    "overflow_guard": "All tables wrapped in overflow-x-auto with touch-scrolling. All card containers have max-w-full overflow-hidden. No unexpected horizontal page drift.",
+    "tap_targets": "All mobile action buttons (Hızlı Transfer, Masraf Ekle, Makbuz Kes, Kasa Değiştir) have minimum height of 44px (h-11 or h-12) with px-4."
+  },
+  "typography": {
+    "fonts": {
+      "headings": "Playfair Display, Cormorant Garamond, serif",
+      "body": "Outfit, Manrope, -apple-system, sans-serif",
+      "financial_figures": "JetBrains Mono, Menlo, monospace"
+    },
+    "google_fonts_import": "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=JetBrains+Mono:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap",
+    "hierarchy": {
+      "h1": "text-2xl sm:text-3xl lg:text-4xl font-serif font-bold tracking-tight text-slate-900 dark:text-slate-100",
+      "h2": "text-xl sm:text-2xl lg:text-3xl font-serif font-semibold tracking-tight text-slate-800 dark:text-slate-100",
+      "h3": "text-lg sm:text-xl font-sans font-semibold tracking-normal text-slate-900 dark:text-slate-200",
+      "h4": "text-base sm:text-lg font-sans font-medium text-slate-800 dark:text-slate-200",
+      "body": "text-sm sm:text-base font-sans text-slate-600 dark:text-slate-300 leading-relaxed",
+      "financial_stat": "text-2xl sm:text-3xl font-mono font-bold tracking-tight text-slate-900 dark:text-amber-100 tabular-nums",
+      "overline": "text-xs uppercase font-mono tracking-[0.2em] font-semibold text-amber-800/80 dark:text-amber-400/90"
+    }
+  },
+  "colors": {
+    "palette": {
+      "brand_primary": "#0F172A",
+      "brand_gold": "#B8860B",
+      "brand_gold_light": "#DFB15B",
+      "brand_gold_subtle": "#F9F6EE",
+      "background_light": "#F8FAFC",
+      "card_light": "#FFFFFF",
+      "card_border_light": "#E2E8F0",
+      "text_main_light": "#0F172A",
+      "text_muted_light": "#64748B",
+      "background_dark": "#0B0F19",
+      "card_dark": "#111827",
+      "card_border_dark": "#1E293B",
+      "text_main_dark": "#F8FAFC",
+      "text_muted_dark": "#94A3B8"
+    },
+    "kasalar_color_coding": {
+      "kasa_1": {
+        "name": "Merkez Ofis Kasası (Nakit / TL)",
+        "badge": "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800",
+        "accent": "#059669",
+        "description": "Fiziki nakit giriş-çıkışları, acil adliye harç avansları"
+      },
+      "kasa_2": {
+        "name": "Banka Ana Cari Kasası (Garanti BBVA)",
+        "badge": "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800",
+        "accent": "#2563EB",
+        "description": "Ana kurumsal banka hesabı, müvekkil EFT/Havale tahsilatları"
+      },
+      "kasa_3": {
+        "name": "Müvekkil Emanet / Masraf Kasası",
+        "badge": "bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800",
+        "accent": "#D97706",
+        "description": "Bilirkişi, keşif, harç ve teminat emanet akçeleri"
+      },
+      "kasa_4": {
+        "name": "İcra & Tahsilat Kasası (Yargı Bloke/UYAP)",
+        "badge": "bg-indigo-50 text-indigo-800 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800",
+        "accent": "#4F46E5",
+        "description": "İcra daireleri ve mahkeme veznelerinden tahsil edilen paralar"
+      }
+    },
+    "financial_indicators": {
+      "income_positive": "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800",
+      "expense_negative": "text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800",
+      "transfer_neutral": "text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800",
+      "receivable_pending": "text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800"
+    }
+  },
+  "layout_and_grids": {
+    "dashboard_grid": "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6",
+    "bento_main_grid": "grid grid-cols-1 lg:grid-cols-12 gap-6",
+    "bento_sections": {
+      "kasa_cards_row": "col-span-full",
+      "quick_transfer_and_actions": "col-span-full lg:col-span-4 space-y-6",
+      "live_transactions_and_analytics": "col-span-full lg:col-span-8 space-y-6"
+    },
+    "spacing_scale": {
+      "card_padding": "p-5 sm:p-6 lg:p-7",
+      "section_gap": "gap-6 sm:gap-8",
+      "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+    }
+  },
+  "key_user_flows": [
+    {
+      "id": "vault_to_vault_transfer",
+      "name": "Kasa - Kasa Para Transferi",
+      "description": "4 kasa arasında (Örn: Banka Kasasından Merkez Nakit Kasasına veya İcra Kasasından Banka Kasasına) anlık virman ve mahsup işlemi."
+    },
+    {
+      "id": "vault_to_client_transfer",
+      "name": "Kasadan Müvekkil Hesabına Transfer",
+      "description": "Tahsil edilen icra veya mahkeme parasının müvekkilin banka hesabına gönderilmesi veya emanet iadesi."
+    },
+    {
+      "id": "client_to_vault_transfer",
+      "name": "Müvekkilden Kasaya Giriş (Tahsilat / Avans)",
+      "description": "Müvekkilin dosya masraf avansı veya vekalet ücreti peşinatı yatırması ile ilgili kasaya bakiye eklenmesi."
+    },
+    {
+      "id": "client_expense_entry",
+      "name": "Müvekkil Dosya Masrafı Girişi",
+      "description": "Dava harcı, bilirkişi ücreti, posta/tebligat gideri, keşif masrafı kaydı ve hangi kasadan ödendiğinin seçimi."
+    },
+    {
+      "id": "attorney_fee_receivables",
+      "name": "Vekil Ücreti Alacak Takibi (Akdi & Karşı Yan)",
+      "description": "Akdi vekalet ücreti ve mahkemece hükmedilen karşı yan vekalet ücreti alacaklarının kaydı, tahakkuku ve tahsilat durumu."
+    },
+    {
+      "id": "financial_reporting_and_export",
+      "name": "Finansal Raporlama ve Analiz",
+      "description": "Tarih aralığına göre gelir/gider grafiği, kasa akış özeti, müvekkil bazlı hesap ekstresi ve PDF / Excel / Yazdır desteği."
+    }
+  ],
+  "image_urls": {
+    "login_hero_image": {
+      "url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwxfHxsYXclMjBzY2FsZXMlMjBqdXN0aWNlJTIwbGF3eWVyfGVufDB8fHx8MTc5MDc2NzIwMnww&ixlib=rb-4.1.0&q=85",
+      "category": "auth_branding",
+      "description": "Statue of Lady Justice with scales and sword, rich corporate legal feel for the Login page split screen",
+      "overlay_guidance": "Use bg-gradient-to-t from-slate-950/90 via-slate-900/50 to-slate-950/30 - image must remain visible"
+    },
+    "office_interior_banner": {
+      "url": "https://images.unsplash.com/photo-1775144657626-29ff0a46ca90?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDB8MHwxfHNlYXJjaHwyfHxsYXclMjBkZXNrfGVufDB8fHx8MTc5MDc2NzE5NHww&ixlib=rb-4.1.0&q=85",
+      "category": "law_firm_heritage",
+      "description": "Prestigious legal executive library desk with books and rich wood tones",
+      "usage": "Law firm profile modal, header ambient accent or report header preview"
+    },
+    "justice_scales_detail": {
+      "url": "https://images.unsplash.com/photo-1587740896339-96a76170508d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHw0fHxsYXclMjBzY2FsZXMlMjBqdXN0aWNlJTIwbGF3eWVyfGVufDB8fHx8MTc5MDc2NzIwMnww&ixlib=rb-4.1.0&q=85",
+      "category": "financial_balance",
+      "description": "Golden balance scale symbol of equity and precision accounting",
+      "usage": "Empty states, audit logs, ledger balance illustration"
+    }
+  },
+  "component_structure": {
+    "navigation": {
+      "desktop_sidebar": "Fixed w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900",
+      "mobile_header": "Sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4",
+      "nav_items": [
+        {"name": "Genel Bakış & Kasalar", "icon": "LayoutDashboard", "path": "dashboard"},
+        {"name": "Para Transferleri", "icon": "ArrowLeftRight", "path": "transfers"},
+        {"name": "Müvekkil Hesapları", "icon": "Users", "path": "clients"},
+        {"name": "Masraf & Avanslar", "icon": "Receipt", "path": "expenses"},
+        {"name": "Vekalet Alacakları", "icon": "Scale", "path": "receivables"},
+        {"name": "Raporlar & Analiz", "icon": "BarChart3", "path": "reports"},
+        {"name": "İşlem Günlüğü (Ledger)", "icon": "History", "path": "ledger"}
+      ]
+    },
+    "interactive_dialogs": [
+      {
+        "name": "KasaTransferModal",
+        "description": "Kasa - Kasa transfer formu (Kaynak Kasa, Hedef Kasa, Tutar TL, Açıklama, İşlem Tarihi, Dekont/Evrak No)"
+      },
+      {
+        "name": "MuvekkilTransferModal",
+        "description": "Kasadan Müvekkile veya Müvekkilden Kasaya transfer formu (Yön seçimi, Kasa seçimi, Müvekkil seçimi, Dava/Dosya No, Tutar, Kategori)"
+      },
+      {
+        "name": "MasrafEkleModal",
+        "description": "Dava dosya masrafı girişi (Müvekkil, Dosya No, Masraf Türü [Harç, Keşif, Bilirkişi, Tebligat, Baro Pulu], Ödenen Kasa, Fiş/Makbuz)"
+      },
+      {
+        "name": "VekaletAlacagiModal",
+        "description": "Avukatlık ücreti tahakkuku (Müvekkil, Dosya Esas No, Tür [Akdi Vekalet, Karşı Yan İlam], Toplam Ücret, Tahsil Edilen, Kalan Bakiye)"
+      },
+      {
+        "name": "YeniMuvekkilModal",
+        "description": "Yeni müvekkil ekleme (Ad/Soyad/Unvan, TC/VKN, Telefon, E-posta, Dosya Sayısı, Başlangıç Bakiyesi)"
+      }
+    ]
+  },
+  "test_id_conventions": {
+    "login_button": "login-submit-button",
+    "kasa_card_prefix": "kasa-card-",
+    "kasa_transfer_btn": "open-vault-transfer-modal-btn",
+    "muvekkil_transfer_btn": "open-client-transfer-modal-btn",
+    "new_expense_btn": "open-new-expense-modal-btn",
+    "new_receivable_btn": "open-new-receivable-modal-btn",
+    "new_client_btn": "open-new-client-modal-btn",
+    "export_pdf_btn": "export-pdf-report-btn",
+    "export_excel_btn": "export-excel-report-btn",
+    "filter_kasa_select": "filter-kasa-select",
+    "filter_date_range": "filter-date-range-picker",
+    "search_input": "global-ledger-search-input",
+    "transfer_submit_button": "transfer-form-submit-button"
+  },
+  "instructions_to_main_agent": [
+    "1. TURKISH LANGUAGE: All labels, status badges, buttons, tooltips and mock data MUST be natural, professional legal Turkish (e.g. 'Müvekkil Cari Hesabı', 'Adli Harç Masrafı', 'Akdi Avukatlık Ücreti', 'İcra Tahsilat Kasası', 'Virman', 'Mahsup').",
+    "2. 4 KASA SYSTEM IS CENTRAL: There MUST be 4 distinct vaults prominently rendered with balances in Turkish Lira (₺). Provide explicit transfer capability: Kasa 1 <-> Kasa 2, Kasa <-> Müvekkil.",
+    "3. MOBILE FIRST: The user might open this from a smartphone in a courthouse. Ensure all modals convert smoothly to drawers/sheets or fit mobile screens without clipping. Tables must scroll horizontally or format into clean mobile transaction cards.",
+    "4. NO MUDDY GRADIENTS: Use clean solid card backgrounds with 1px border strokes (#E2E8F0 light, #1E293B dark), crisp gold/bronze badges, and monospace figures for amounts.",
+    "5. DATA-TESTID: Ensure every button, input, tab, card, and action modal carries meaningful kebab-case data-testid attributes (see test_id_conventions).",
+    "6. USE RECHARTS: Provide income/expense trend charts and vault balance distribution charts with accessible Turkish labels.",
+    "7. JWT AUTH & DEMO ACCESS: Keep clean simulated or actual JWT authentication flow with quick-fill demo buttons for partner attorneys and managing accountants.",
+    "8. FULL FUNCTIONALITY: Users must be able to test transfers in real-time with instant state updates on vault balances and ledger transactions."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": {
+    "aesthetic_principles": "Avoid AI slop, avoid generic centered layouts. Use asymmetrical Bento grids, prestigious legal serif headings paired with high-clarity modern body fonts, and precise tabular numbers.",
+    "motion": "Use Framer Motion for modal transitions, tab switches, and badge status changes. Strictly respect prefers-reduced-motion.",
+    "toasts": "Use Sonner for transfer confirmations, expense creation notifications, and export success alerts."
+  }
+}

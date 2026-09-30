@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=JetBrains+Mono:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    margin: 0;
+    font-family: 'Outfit', 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #F8FAFC;
+    color: #0F172A;
+}
+
+.font-serif-legal {
+    font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+}
+
+.font-mono-num {
+    font-family: 'JetBrains Mono', Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+    :root {
+        --background: 210 40% 98%;
+        --foreground: 222 47% 11%;
+        --card: 0 0% 100%;
+        --card-foreground: 222 47% 11%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222 47% 11%;
+        --primary: 222 47% 11%;
+        --primary-foreground: 210 40% 98%;
+        --secondary: 210 40% 96%;
+        --secondary-foreground: 222 47% 11%;
+        --muted: 210 40% 96%;
+        --muted-foreground: 215 16% 47%;
+        --accent: 40 60% 55%;
+        --accent-foreground: 222 47% 11%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 214 32% 91%;
+        --input: 214 32% 91%;
+        --ring: 40 60% 55%;
+        --chart-1: 160 84% 39%;
+        --chart-2: 217 91% 60%;
+        --chart-3: 32 95% 44%;
+        --chart-4: 239 84% 67%;
+        --chart-5: 340 82% 52%;
+        --radius: 0.75rem;
+    }
+    .dark {
+        --background: 222 47% 5%;
+        --foreground: 210 40% 98%;
+        --card: 222 47% 7%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222 47% 7%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 210 40% 98%;
+        --primary-foreground: 222 47% 11%;
+        --secondary: 217 33% 17%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217 33% 17%;
+        --muted-foreground: 215 20% 65%;
+        --accent: 40 60% 55%;
+        --accent-foreground: 222 47% 11%;
+        --destructive: 0 63% 40%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 217 33% 17%;
+        --input: 217 33% 17%;
+        --ring: 40 60% 55%;
+    }
+}
+
+@layer base {
+    * { @apply border-border; }
+    body { @apply bg-background text-foreground; }
+}
+
+/* Refined scrollbars */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.vault-card {
+    position: relative;
+    background: linear-gradient(135deg, #ffffff 0%, #fdfaf3 100%);
+    border: 1px solid rgba(184, 134, 11, 0.15);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.vault-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px -12px rgba(15, 23, 42, 0.15);
+    border-color: rgba(184, 134, 11, 0.4);
+}
+.vault-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: currentColor;
+    border-radius: 0.75rem 0 0 0.75rem;
+    opacity: 0.9;
+}
+
+.gold-badge {
+    background: linear-gradient(135deg, #F9F6EE 0%, #f5ecd0 100%);
+    color: #7c5410;
+    border: 1px solid #dfb15b40;
+}
+
+@layer base {
+    [data-debug-wrapper="true"] { display: contents !important; }
+}
