@@ -535,6 +535,16 @@ async def startup_event():
 async def root():
     return {"service": "LexKasa API", "status": "ok"}
 
+@api_router.post("/admin/reset-data")
+async def reset_data(current=Depends(get_current_user)):
+    """Tüm işlem verilerini siler, kasa bakiyelerini sıfırlar. Kullanıcı ve kasa isimleri korunur."""
+    await db.clients.delete_many({})
+    await db.transactions.delete_many({})
+    await db.expenses.delete_many({})
+    await db.receivables.delete_many({})
+    await db.kasalar.update_many({}, {"$set": {"balance": 0.0}})
+    return {"success": True, "message": "Tüm test verileri silindi, kasa bakiyeleri sıfırlandı"}
+
 app.include_router(api_router)
 
 app.add_middleware(
