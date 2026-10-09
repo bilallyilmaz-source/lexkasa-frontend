@@ -1,0 +1,32 @@
+{
+  "summary": "Verified frontend now points exclusively to https://lex-kasa.onrender.com. Across two end-to-end Playwright sessions (64 total /api/* requests captured), 0 calls hit the old emergentagent.com backend. Login, dashboard (4 kasa cards), navigation to Müvekkil/Masraflar/Vekalet Alacakları/Raporlar/İşlem Günlüğü, client creation (POST /api/clients 200), kasa rename (PATCH /api/kasalar/{id} 200), kasa transfer modal, reports summary, transactions fetch, and logout -> re-login all worked. Persistence confirmed: TEST_Muvekkil_38019 remained in the list after logout+re-login (proves MongoDB Atlas on Render is backing the data). Render cold-start first request took ~5s, subsequent were fast.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Env change is minimal and correct; REACT_APP_BACKEND_URL is read via api.js and used consistently.",
+    "Confirmed CORS from Render allows the preview origin (preflight OPTIONS not needed as GET/POST with Bearer token succeeded)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not in scope)", "frontend": "100%"},
+  "test_credentials": "admin@lexkasa.com / admin123 (seeded on Render)",
+  "seed_data_creation": "Created 1 test client 'TEST_Muvekkil_38019' and renamed Merkez Ofis Kasası (name suffixed with timestamp). These persist in Atlas.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Frontend uses REACT_APP_BACKEND_URL=https://lex-kasa.onrender.com. All /api/* requests were verified to hit Render only. Test leftover data in Atlas: TEST_Muvekkil_38019 client and the renamed Merkez kasa — main agent may want to rename the kasa back if needed.",
+  "network_verification": {
+    "total_api_calls_captured": 64,
+    "calls_to_lex_kasa_onrender": 64,
+    "calls_to_emergentagent_backend": 0,
+    "mutations_verified": [
+      "POST /api/auth/login 200",
+      "POST /api/clients 200",
+      "PATCH /api/kasalar/{id} 200"
+    ]
+  }
+}
