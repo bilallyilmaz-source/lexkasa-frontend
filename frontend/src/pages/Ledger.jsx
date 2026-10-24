@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api, { formatTL, formatDateTime } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ export default function Ledger() {
   const [type, setType] = useState("all");
   const [q, setQ] = useState("");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const p = new URLSearchParams();
     if (kasaId && kasaId !== "all") p.set("kasa_id", kasaId);
     if (type && type !== "all") p.set("tx_type", type);
@@ -28,8 +28,8 @@ export default function Ledger() {
       api.get("/clients"),
     ]);
     setTxs(t.data); setKasalar(k.data); setClients(c.data);
-  };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [kasaId, type]);
+  }, [kasaId, type]);
+  useEffect(() => { load(); }, [load]);
 
   const filtered = txs.filter(t => {
     if (!q) return true;

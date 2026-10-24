@@ -44,3 +44,5 @@ Bir hukuk bürosu için 4 adet kasanın bulunduğu; kasalardan birbirlerine para
 - Linked sync: expense tx <-> expenses doc (expense_id), receivable_collection -> receivable collected_amount.
 - Frontend: TxRowActions (Düzenle/Sil + 'Emin misiniz?') and TxEditModal in Ledger and ClientDetail. Tested iteration_3 (100%).
 - PENDING: user must Save to GitHub + redeploy Render for live use.
+- 2026-06: Fixed Vercel build failure (CI=true treats eslint warnings as errors): useCallback in Ledger/ClientDetail, eslint-disable in Reports. Verified `CI=true yarn build` passes. Vercel Root Directory must be `frontend`.
+- Note: preview frontend/.env REACT_APP_BACKEND_URL sometimes resets to preview URL; user wants it on https://lex-kasa.onrender.com.

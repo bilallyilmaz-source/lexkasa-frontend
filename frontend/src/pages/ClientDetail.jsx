@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api, { formatTL, formatDateTime } from "@/lib/api";
 import { Card } from "@/components/ui/card";
@@ -23,15 +23,15 @@ export default function ClientDetail() {
   const [openExp, setOpenExp] = useState(false);
   const [openRec, setOpenRec] = useState(false);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     const [d, k, cs] = await Promise.all([
       api.get(`/clients/${id}`),
       api.get("/kasalar"),
       api.get("/clients"),
     ]);
     setData(d.data); setKasalar(k.data); setClients(cs.data);
-  };
-  useEffect(() => { refresh(); }, [id]);
+  }, [id]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   if (!data) return <div className="text-sm text-slate-500">Yükleniyor…</div>;
   const { client, transactions, expenses, receivables } = data;
