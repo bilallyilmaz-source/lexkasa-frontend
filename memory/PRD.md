@@ -36,5 +36,5 @@ Bir hukuk bürosu için 4 adet kasanın bulunduğu; kasalardan birbirlerine para
 ## 2026-06 Update
 - Removed "Test verilerini temizle" button from frontend.
 - Added PATCH /api/clients/{id} (rename/edit client) to backend/server.py.
-- scripts/rename_client.py renames TEST_Muvekkil_38019 -> BÜRO on Render. PENDING: user must redeploy Render with new server.py (Render currently returns 405), then run the script.
+- DONE: TEST_Muvekkil_38019 renamed to BÜRO on live Render (balance -251 preserved) via scripts/rename_client.py.
 - frontend/.env REACT_APP_BACKEND_URL now points to https://lex-kasa.onrender.com (live data).
