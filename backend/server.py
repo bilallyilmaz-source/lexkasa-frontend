@@ -13,6 +13,7 @@ from typing import List, Optional, Literal
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import UpdateOne
 from pydantic import BaseModel, Field, EmailStr
 
 # MongoDB
@@ -374,7 +375,7 @@ async def create_expense(payload: ExpenseIn, current=Depends(get_current_user)):
         "client_id": client_doc["id"], "client_name": client_doc["name"],
         "expense_type": payload.expense_type, "file_no": payload.file_no or "",
         "description": payload.description or "",
-        "date": doc["date"], "user_id": current["id"],
+        "date": doc["date"], "user_id": current["id"], "expense_id": doc["id"],
     })
     doc.pop("_id", None)
     return doc
@@ -468,6 +469,170 @@ async def list_transactions(
     items.sort(key=lambda x: x.get("date", ""), reverse=True)
     return items
 
+# ---------- Transaction edit / delete with balance recomputation ----------
+TX_TYPES = ["kasa_transfer", "client_to_kasa", "kasa_to_client", "expense", "receivable_collection"]
+CLIENT_TX_TYPES = ["client_to_kasa", "kasa_to_client", "expense"]
+TXN_SUPPORTED = False
+
+def _neg(v):
+    return {"$multiply": [v, -1]}
+
+KASA_BALANCE_PIPELINE = [
+    {"$project": {"e": {"$switch": {"branches": [
+        {"case": {"$eq": ["$type", "kasa_transfer"]},
+         "then": [{"id": "$source_kasa_id", "d": _neg("$amount")}, {"id": "$target_kasa_id", "d": "$amount"}]},
+        {"case": {"$in": ["$type", ["client_to_kasa", "receivable_collection"]]},
+         "then": [{"id": "$kasa_id", "d": "$amount"}]},
+        {"case": {"$in": ["$type", ["kasa_to_client", "expense"]]},
+         "then": [{"id": "$kasa_id", "d": _neg("$amount")}]},
+    ], "default": []}}}},
+    {"$unwind": "$e"},
+    {"$group": {"_id": "$e.id", "balance": {"$sum": "$e.d"}}},
+]
+
+CLIENT_BALANCE_PIPELINE = [
+    {"$match": {"type": {"$in": CLIENT_TX_TYPES}}},
+    {"$group": {"_id": "$client_id", "balance": {"$sum": {
+        "$cond": [{"$eq": ["$type", "client_to_kasa"]}, "$amount", _neg("$amount")]}}}},
+]
+
+async def _apply_balances(coll, pipeline, session):
+    sums = {d["_id"]: round(d["balance"], 2)
+            async for d in db.transactions.aggregate(pipeline, session=session)}
+    ids = await coll.distinct("id", session=session)
+    ops = [UpdateOne({"id": i}, {"$set": {"balance": sums.get(i, 0.0)}}) for i in ids]
+    if ops:
+        await coll.bulk_write(ops, session=session)
+
+async def recompute_balances(session=None):
+    await _apply_balances(db.kasalar, KASA_BALANCE_PIPELINE, session)
+    await _apply_balances(db.clients, CLIENT_BALANCE_PIPELINE, session)
+
+async def run_atomic(fn):
+    if not TXN_SUPPORTED:
+        return await fn(None)
+    async with await client.start_session() as s:
+        async with s.start_transaction():
+            return await fn(s)
+
+async def find_linked_expense(tx, session):
+    if tx.get("expense_id"):
+        return await db.expenses.find_one({"id": tx["expense_id"]}, {"_id": 0}, session=session)
+    return await db.expenses.find_one({
+        "client_id": tx.get("client_id"), "kasa_id": tx.get("kasa_id"),
+        "amount": tx.get("amount"), "date": tx.get("date"),
+    }, {"_id": 0}, session=session)
+
+async def adjust_receivable(rec_id, delta, session):
+    rec = await db.receivables.find_one({"id": rec_id}, {"_id": 0}, session=session)
+    if not rec:
+        return
+    collected = round(rec["collected_amount"] + delta, 2)
+    if collected < 0 or collected > rec["total_amount"]:
+        raise HTTPException(status_code=400, detail="Tahsilat tutarı alacak toplamını aşamaz")
+    remaining = round(rec["total_amount"] - collected, 2)
+    await db.receivables.update_one({"id": rec_id}, {"$set": {
+        "collected_amount": collected, "remaining": remaining,
+        "status": "tahsil_edildi" if remaining == 0 else "acik"}}, session=session)
+
+class TxUpdateIn(BaseModel):
+    type: Optional[Literal["kasa_transfer", "client_to_kasa", "kasa_to_client", "expense", "receivable_collection"]] = None
+    amount: Optional[float] = None
+    kasa_id: Optional[str] = None
+    source_kasa_id: Optional[str] = None
+    target_kasa_id: Optional[str] = None
+    client_id: Optional[str] = None
+    expense_type: Optional[str] = None
+    date: Optional[str] = None
+    description: Optional[str] = None
+
+async def _build_tx_update(old, payload, session):
+    data = {k: v for k, v in payload.model_dump().items() if v is not None}
+    new = {**old, **data}
+    if new["type"] != old["type"] and not (old["type"] in CLIENT_TX_TYPES and new["type"] in CLIENT_TX_TYPES):
+        raise HTTPException(status_code=400, detail="Bu işlemin türü değiştirilemez")
+    if new["amount"] <= 0:
+        raise HTTPException(status_code=400, detail="Tutar sıfırdan büyük olmalı")
+    if new["type"] == "kasa_transfer":
+        if new["source_kasa_id"] == new["target_kasa_id"]:
+            raise HTTPException(status_code=400, detail="Kaynak ve hedef kasa aynı olamaz")
+        src = await db.kasalar.find_one({"id": new["source_kasa_id"]}, {"_id": 0}, session=session)
+        tgt = await db.kasalar.find_one({"id": new["target_kasa_id"]}, {"_id": 0}, session=session)
+        if not src or not tgt:
+            raise HTTPException(status_code=404, detail="Kasa bulunamadı")
+        new["source_kasa_name"], new["target_kasa_name"] = src["name"], tgt["name"]
+        return new
+    kasa = await db.kasalar.find_one({"id": new.get("kasa_id")}, {"_id": 0}, session=session)
+    if not kasa:
+        raise HTTPException(status_code=404, detail="Kasa bulunamadı")
+    new["kasa_name"] = kasa["name"]
+    if new["type"] == "receivable_collection":
+        new["client_id"] = old.get("client_id")
+        return new
+    cl = await db.clients.find_one({"id": new.get("client_id")}, {"_id": 0}, session=session)
+    if not cl:
+        raise HTTPException(status_code=404, detail="Müvekkil bulunamadı")
+    new["client_name"] = cl["name"]
+    if new["type"] == "expense":
+        new["expense_type"] = new.get("expense_type") or "Diğer"
+    return new
+
+async def _sync_expense(old, new, session):
+    linked = await find_linked_expense(old, session) if old["type"] == "expense" else None
+    if new["type"] != "expense":
+        if linked:
+            await db.expenses.delete_one({"id": linked["id"]}, session=session)
+        new.pop("expense_id", None)
+        return
+    fields = {k: new.get(k) for k in ("client_id", "client_name", "kasa_id", "kasa_name",
+                                      "amount", "date", "description", "expense_type")}
+    if linked:
+        await db.expenses.update_one({"id": linked["id"]}, {"$set": fields}, session=session)
+        new["expense_id"] = linked["id"]
+    else:
+        doc = {"id": new_id(), "file_no": new.get("file_no", ""), "receipt_no": "",
+               "created_at": now_iso(), "user_id": new.get("user_id"), **fields}
+        await db.expenses.insert_one(doc, session=session)
+        new["expense_id"] = doc["id"]
+
+@api_router.patch("/transactions/{tx_id}")
+async def update_transaction(tx_id: str, payload: TxUpdateIn, current=Depends(get_current_user)):
+    async def work(session):
+        old = await db.transactions.find_one({"id": tx_id}, {"_id": 0}, session=session)
+        if not old:
+            raise HTTPException(status_code=404, detail="İşlem bulunamadı")
+        new = await _build_tx_update(old, payload, session)
+        if old["type"] == "receivable_collection" and old.get("receivable_id"):
+            await adjust_receivable(old["receivable_id"], new["amount"] - old["amount"], session)
+        await _sync_expense(old, new, session)
+        new["updated_at"] = now_iso()
+        await db.transactions.replace_one({"id": tx_id}, new, session=session)
+        await recompute_balances(session)
+        return new
+    return await run_atomic(work)
+
+@api_router.delete("/transactions/{tx_id}")
+async def delete_transaction(tx_id: str, current=Depends(get_current_user)):
+    async def work(session):
+        tx = await db.transactions.find_one({"id": tx_id}, {"_id": 0}, session=session)
+        if not tx:
+            raise HTTPException(status_code=404, detail="İşlem bulunamadı")
+        if tx["type"] == "expense":
+            linked = await find_linked_expense(tx, session)
+            if linked:
+                await db.expenses.delete_one({"id": linked["id"]}, session=session)
+        if tx["type"] == "receivable_collection" and tx.get("receivable_id"):
+            await adjust_receivable(tx["receivable_id"], -tx["amount"], session)
+        await db.transactions.delete_one({"id": tx_id}, session=session)
+        await recompute_balances(session)
+        return {"success": True}
+    return await run_atomic(work)
+
+@api_router.post("/admin/recalculate-balances")
+async def recalculate_balances(current=Depends(get_current_user)):
+    await run_atomic(recompute_balances)
+    return {"success": True}
+
 # ---------- Reports ----------
 @api_router.get("/reports/summary")
 async def summary(start_date: Optional[str] = None, end_date: Optional[str] = None,
@@ -534,6 +699,10 @@ async def startup_event():
     await db.kasalar.create_index("id", unique=True)
     await db.transactions.create_index("id", unique=True)
     await ensure_default_kasalar()
+    global TXN_SUPPORTED
+    hello = await db.command("hello")
+    TXN_SUPPORTED = bool(hello.get("setName")) or hello.get("msg") == "isdbgrid"
+    logger.info("Mongo multi-document transactions: %s", TXN_SUPPORTED)
     # Seed admin
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@lexkasa.com").lower()
     admin_pw = os.environ.get("ADMIN_PASSWORD", "admin123")

@@ -5,18 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const TYPES = {
-  kasa_transfer: "Kasa Virmanı",
-  client_to_kasa: "Müvekkilden Tahsilat",
-  kasa_to_client: "Müvekkile Ödeme",
-  expense: "Dava Masrafı",
-  receivable_collection: "Vekalet Tahsilatı",
-};
+import { TX_TYPES as TYPES } from "@/lib/txTypes";
+import { TxRowActions } from "@/components/TxRowActions";
+import TxEditModal from "@/components/modals/TxEditModal";
 
 export default function Ledger() {
   const [txs, setTxs] = useState([]);
   const [kasalar, setKasalar] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [editTx, setEditTx] = useState(null);
   const [kasaId, setKasaId] = useState("all");
   const [type, setType] = useState("all");
   const [q, setQ] = useState("");
@@ -25,11 +22,12 @@ export default function Ledger() {
     const p = new URLSearchParams();
     if (kasaId && kasaId !== "all") p.set("kasa_id", kasaId);
     if (type && type !== "all") p.set("tx_type", type);
-    const [t, k] = await Promise.all([
+    const [t, k, c] = await Promise.all([
       api.get(`/transactions?${p}&limit=500`),
       api.get("/kasalar"),
+      api.get("/clients"),
     ]);
-    setTxs(t.data); setKasalar(k.data);
+    setTxs(t.data); setKasalar(k.data); setClients(c.data);
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [kasaId, type]);
 
@@ -92,11 +90,12 @@ export default function Ledger() {
                 <th className="p-3 font-semibold text-slate-700 text-xs uppercase tracking-widest">Müvekkil</th>
                 <th className="p-3 font-semibold text-slate-700 text-xs uppercase tracking-widest">Açıklama</th>
                 <th className="p-3 font-semibold text-slate-700 text-xs uppercase tracking-widest text-right">Tutar</th>
+                <th className="p-3 font-semibold text-slate-700 text-xs uppercase tracking-widest text-right">İşlem</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 && (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-500 text-sm">Kayıt yok</td></tr>
+                <tr><td colSpan={7} className="p-8 text-center text-slate-500 text-sm">Kayıt yok</td></tr>
               )}
               {filtered.map(t => {
                 const isIn = ["client_to_kasa", "receivable_collection"].includes(t.type);
@@ -113,6 +112,7 @@ export default function Ledger() {
                     <td className={`p-3 text-right font-mono-num font-semibold whitespace-nowrap ${isIn ? "text-emerald-700" : isOut ? "text-rose-700" : "text-slate-900"}`}>
                       {isIn ? "+" : isOut ? "-" : ""}{formatTL(t.amount)}
                     </td>
+                    <td className="p-3"><TxRowActions tx={t} onEdit={setEditTx} onChanged={load} /></td>
                   </tr>
                 );
               })}
@@ -120,6 +120,7 @@ export default function Ledger() {
           </table>
         </div>
       </Card>
+      <TxEditModal tx={editTx} onOpenChange={(o) => !o && setEditTx(null)} kasalar={kasalar} clients={clients} onDone={load} />
     </div>
   );
 }

@@ -9,10 +9,14 @@ import { ArrowLeft, Plus, Receipt, Scale } from "lucide-react";
 import MuvekkilTransferModal from "@/components/modals/MuvekkilTransferModal";
 import MasrafModal from "@/components/modals/MasrafModal";
 import AlacakModal from "@/components/modals/AlacakModal";
+import TxEditModal from "@/components/modals/TxEditModal";
+import { TxRowActions } from "@/components/TxRowActions";
+import { TX_TYPES } from "@/lib/txTypes";
 
 export default function ClientDetail() {
   const { id } = useParams();
   const [data, setData] = useState(null);
+  const [editTx, setEditTx] = useState(null);
   const [kasalar, setKasalar] = useState([]);
   const [clients, setClients] = useState([]);
   const [openTx, setOpenTx] = useState(false);
@@ -63,7 +67,7 @@ export default function ClientDetail() {
 
       <Card className="p-6">
         <div className="text-xs uppercase tracking-widest text-slate-500 mb-2">Cari Bakiye</div>
-        <div className={`font-mono-num text-3xl font-bold ${client.balance < 0 ? "text-rose-700" : "text-emerald-700"}`}>
+        <div className={`font-mono-num text-3xl font-bold ${client.balance < 0 ? "text-rose-700" : "text-emerald-700"}`} data-testid="client-balance">
           {formatTL(client.balance)}
         </div>
         <div className="text-xs text-slate-400 mt-1">
@@ -81,14 +85,17 @@ export default function ClientDetail() {
           <Card className="divide-y divide-slate-100">
             {transactions.length === 0 && <div className="p-8 text-center text-sm text-slate-500">Hareket yok</div>}
             {transactions.map(t => (
-              <div key={t.id} className="p-4 flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium text-slate-900">{t.type}</div>
-                  <div className="text-xs text-slate-500">{t.kasa_name} · {t.description || "—"}</div>
+              <div key={t.id} className="p-4 flex items-center justify-between gap-4" data-testid={`client-tx-row-${t.id}`}>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-slate-900">{TX_TYPES[t.type] || t.type}</div>
+                  <div className="text-xs text-slate-500">{t.kasa_name} · {t.description || t.expense_type || "—"}</div>
                 </div>
-                <div className="text-right">
-                  <div className="font-mono-num text-sm font-semibold">{formatTL(t.amount)}</div>
-                  <div className="text-[10px] text-slate-400">{formatDateTime(t.date)}</div>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <div className="font-mono-num text-sm font-semibold" data-testid={`client-tx-amount-${t.id}`}>{formatTL(t.amount)}</div>
+                    <div className="text-[10px] text-slate-400">{formatDateTime(t.date)}</div>
+                  </div>
+                  <TxRowActions tx={t} onEdit={setEditTx} onChanged={refresh} />
                 </div>
               </div>
             ))}
@@ -140,6 +147,7 @@ export default function ClientDetail() {
       <MuvekkilTransferModal open={openTx} onOpenChange={setOpenTx} kasalar={kasalar} clients={clients} onDone={refresh} defaultClientId={id} />
       <MasrafModal open={openExp} onOpenChange={setOpenExp} kasalar={kasalar} clients={clients} onDone={refresh} defaultClientId={id} />
       <AlacakModal open={openRec} onOpenChange={setOpenRec} clients={clients} onDone={refresh} defaultClientId={id} />
+      <TxEditModal tx={editTx} onOpenChange={(o) => !o && setEditTx(null)} kasalar={kasalar} clients={clients} onDone={refresh} />
     </div>
   );
 }
