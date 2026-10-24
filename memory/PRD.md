@@ -38,3 +38,9 @@ Bir hukuk bürosu için 4 adet kasanın bulunduğu; kasalardan birbirlerine para
 - Added PATCH /api/clients/{id} (rename/edit client) to backend/server.py.
 - DONE: TEST_Muvekkil_38019 renamed to BÜRO on live Render (balance -251 preserved) via scripts/rename_client.py.
 - frontend/.env REACT_APP_BACKEND_URL now points to https://lex-kasa.onrender.com (live data).
+
+## 2026-06 Transaction edit/delete
+- PATCH/DELETE /api/transactions/{id}, POST /api/admin/recalculate-balances. After each edit/delete ALL kasa & client balances are recomputed from transaction history via aggregation; runs inside a Mongo session transaction when replica set (Atlas) detected at startup.
+- Linked sync: expense tx <-> expenses doc (expense_id), receivable_collection -> receivable collected_amount.
+- Frontend: TxRowActions (Düzenle/Sil + 'Emin misiniz?') and TxEditModal in Ledger and ClientDetail. Tested iteration_3 (100%).
+- PENDING: user must Save to GitHub + redeploy Render for live use.

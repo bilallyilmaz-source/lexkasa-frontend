@@ -81,7 +81,7 @@ export default function TxEditModal({ tx, onOpenChange, kasalar, clients, onDone
             {f.type === "expense" && <Pick label="Masraf Türü" value={f.expense_type} onChange={set("expense_type")} items={EXPENSE_TYPES.map((t) => [t, t])} testId="tx-edit-expense-type-select" />}
             <div>
               <Label>Tarih</Label>
-              <Input type="datetime-local" value={f.date || ""} onChange={(e) => set("date")(e.target.value)} className="mt-1.5 h-11" data-testid="tx-edit-date-input" />
+              <Input type="datetime-local" lang="tr-TR" value={f.date || ""} onChange={(e) => set("date")(e.target.value)} className="mt-1.5 h-11" data-testid="tx-edit-date-input" />
             </div>
           </div>
           <div>

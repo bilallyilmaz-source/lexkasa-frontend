@@ -1,0 +1,31 @@
+{
+  "summary": "Tested transaction edit/delete with balance recomputation against preview backend (local MongoDB, standalone -> non-session path). Backend: 14/14 pytest pass covering PATCH (amount/kasa/client/type/date/description), type-change rules, validation (400/404/422/401), DELETE (client tx, expense + linked expense doc, kasa_transfer, receivable_collection with collected_amount rollback), expense doc sync on edit / type change to/from expense, and POST /api/admin/recalculate-balances (idempotent, matches incremental balances). Frontend: Client detail and Ledger both show Düzenle/Sil per row; edit modal prefilled correctly, Radix selects (type/kasa/expense type) work, save closes modal and list + client-balance refresh without reload; 'Emin misiniz?' dialog cancel keeps row, confirm deletes; Masraflar tab count updates; dashboard kasa cards reflect changes; client-side amount<=0 validation toast works. No bugs found.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "TxEditModal", "issues": ["Date field uses native <input type=datetime-local> (browser default picker, US mm/dd format in Chromium) instead of shadcn Calendar/Popover - inconsistent with Turkish UI"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_tx_edit_delete.py", "/app/test_reports/pytest/pytest_tx_edit.xml"],
+  "action_items": [
+    "Optional: replace native datetime-local in TxEditModal with shadcn date picker (tr locale)",
+    "Be aware before production: recompute_balances overwrites ALL kasa/client balances from transaction history; any balance on Render/Atlas not backed by transactions (manual edits, opening balances, legacy drift) will be reset on the first edit/delete. Consider running /admin/recalculate-balances on a copy first or adding an opening-balance transaction type."
+  ],
+  "critical_code_review_comments": [
+    "recompute_balances does a full aggregation + bulk_write over all kasalar/clients on every edit/delete - fine for small firms, O(n) per mutation as data grows.",
+    "Ledger.load / ClientDetail.refresh have no try/catch or loading/error state; a failed GET after edit leaves stale UI silently.",
+    "When type changes expense -> client_to_kasa, stale expense_type remains in tx doc (Ledger shows description||expense_type) - harmless but untidy.",
+    "find_linked_expense fallback matches by client/kasa/amount/date for legacy tx without expense_id - could delete wrong doc if two identical expenses exist (edge case).",
+    "/api/admin/reset-data and /admin/recalculate-balances are available to any authenticated user (no role check) - consider requiring role=admin.",
+    "CORS allow_origins='*' with allow_credentials=True; app uses Bearer tokens so works, but explicit origins recommended."
+  ],
+  "updated_files": ["/app/backend/tests/test_tx_edit_delete.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "admin@lexkasa.com / admin123",
+  "seed_data_creation": "Created TEST_ clients/transactions during tests; all cleaned up via local mongo and balances recalculated (all kasa balances 0, 2 non-test clients remain).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Run pytest /app/backend/tests/test_tx_edit_delete.py (uses REACT_APP_BACKEND_URL, cleans up via local mongo mongodb://localhost:27017 lexkasa_db since there is no client delete endpoint). Never point it at lex-kasa.onrender.com. Replica-set (session) path not tested here."
+}
