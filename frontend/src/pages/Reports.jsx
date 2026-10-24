@@ -4,8 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { BarChart3, Download, TrendingUp, TrendingDown, Wallet, Scale, Trash2 } from "lucide-react";
+import { BarChart3, Download, TrendingUp, TrendingDown, Wallet, Scale } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   BarChart, Bar, Legend, Cell,
@@ -47,16 +46,6 @@ export default function Reports() {
     a.href = url; a.download = `lexkasa-hareketler-${new Date().toISOString().slice(0,10)}.csv`;
     a.click(); URL.revokeObjectURL(url);
     toast.success("CSV indirildi");
-  };
-
-  const resetData = async () => {
-    try {
-      await api.post("/admin/reset-data");
-      toast.success("Tüm test verileri silindi");
-      load();
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || "İşlem başarısız");
-    }
   };
 
   return (
@@ -124,42 +113,6 @@ export default function Reports() {
           </ResponsiveContainer>
         </Card>
       </div>
-
-      <Card className="p-5 border-rose-200 bg-rose-50/40 mt-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h3 className="font-serif-legal text-lg text-rose-900 mb-1 flex items-center gap-2">
-              <Trash2 className="w-4 h-4" /> Test Verilerini Temizle
-            </h3>
-            <p className="text-sm text-rose-700/80">
-              Tüm müvekkil, işlem, masraf ve alacak kayıtlarını siler; 4 kasanın bakiyesini sıfırlar.
-              Kasa isimleri ve kullanıcı hesabı korunur. <strong>Geri alınamaz.</strong>
-            </p>
-          </div>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" data-testid="reset-data-btn" className="h-11 whitespace-nowrap">
-                <Trash2 className="w-4 h-4 mr-2" /> Tümünü Sil
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="font-serif-legal text-2xl">Emin misiniz?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Tüm müvekkiller, işlemler, masraflar ve vekalet alacakları silinecek.
-                  Kasa bakiyeleri sıfırlanacak. Bu işlem <strong>geri alınamaz</strong>.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>İptal</AlertDialogCancel>
-                <AlertDialogAction onClick={resetData} className="bg-rose-600 hover:bg-rose-700" data-testid="confirm-reset-btn">
-                  Evet, Tümünü Sil
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </Card>
     </div>
   );
 }

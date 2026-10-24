@@ -32,3 +32,9 @@ Bir hukuk bürosu için 4 adet kasanın bulunduğu; kasalardan birbirlerine para
 
 ## Users
 - Managing attorneys, accountants at Turkish law firms
+
+## 2026-06 Update
+- Removed "Test verilerini temizle" button from frontend.
+- Added PATCH /api/clients/{id} (rename/edit client) to backend/server.py.
+- scripts/rename_client.py renames TEST_Muvekkil_38019 -> BÜRO on Render. PENDING: user must redeploy Render with new server.py (Render currently returns 405), then run the script.
+- Note: frontend/.env currently points to preview URL, not Render.

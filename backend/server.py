@@ -303,6 +303,23 @@ async def create_client(payload: ClientIn, current=Depends(get_current_user)):
     doc.pop("_id", None)
     return doc
 
+class ClientUpdate(BaseModel):
+    name: Optional[str] = None
+    tc_vkn: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    notes: Optional[str] = None
+
+@api_router.patch("/clients/{client_id}")
+async def update_client(client_id: str, payload: ClientUpdate, current=Depends(get_current_user)):
+    updates = {k: v for k, v in payload.model_dump().items() if v is not None}
+    if "name" in updates and not updates["name"].strip():
+        raise HTTPException(status_code=400, detail="İsim boş olamaz")
+    res = await db.clients.update_one({"id": client_id}, {"$set": updates})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Müvekkil bulunamadı")
+    return await db.clients.find_one({"id": client_id}, {"_id": 0})
+
 @api_router.get("/clients/{client_id}")
 async def client_detail(client_id: str, current=Depends(get_current_user)):
     c = await db.clients.find_one({"id": client_id}, {"_id": 0})
